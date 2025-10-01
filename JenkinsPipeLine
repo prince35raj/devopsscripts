@@ -1,1 +1,35 @@
 
+#Pipeline: Deploy to EC2
+
+pipeline {
+    agent any 
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/prince35raj/my-website.git',
+                    credentialsId: 'GitCreden'
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['ec2-key']) {
+                    sh """
+                        # Copy files to /tmp folder first
+                        scp -o StrictHostKeyChecking=no -r index.html style.css ec2-user@13.126.2.214:/tmp/
+
+                        # SSH into EC2 and move files with sudo
+                        ssh -o StrictHostKeyChecking=no ec2-user@13.126.2.214 '
+                            sudo mv /tmp/index.html /var/www/html/
+                            sudo mv /tmp/style.css /var/www/html/
+                            sudo chown apache:apache /var/www/html/index.html /var/www/html/style.css
+                            sudo systemctl restart httpd
+                        '
+                    """
+                }
+            }
+        }
+    }
+}

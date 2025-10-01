@@ -1,5 +1,4 @@
-
-#Pipeline: Deploy to EC2
+// Pipeline: Deploy to EC2
 
 pipeline {
     agent any 
